@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #if _WIN32 || _WIN64
 #include <conio.h>
 #include <windows.h>
@@ -74,7 +75,7 @@ void clearScreen() {
 
 //matiin cursor
 void disableCursor() {
-     printf("\033[?25l");
+    printf("\033[?25l");
 }
 void enableCursor() {
     printf("\033[?25h");
@@ -98,169 +99,338 @@ void titlePage(){
     printf("|                                        ▀                                                   |\n");
     printf("=============================================================================================\n");
 }
+//DATA STRUCTURE -----------------------------------------------------------------------------------------------------------------------
 
-void loginHeader(){
-    printf("===========================================================================\n");
-    printf("| ▄▄▄▄███▄▄▄▄      ▄████████    ▄████████ ███    █▄     ▄█   ▄█▄          |\n");
-    printf("| ▄██▀▀▀███▀▀▀██▄   ███    ███   ███    ███ ███    ███   ███ ▄███▀        |\n");
-    printf("| ███   ███   ███   ███    ███   ███    █▀  ███    ███   ███▐██▀          |\n");
-    printf("| ███   ███   ███   ███    ███   ███        ███    ███  ▄█████▀           |\n");
-    printf("| ███   ███   ███ ▀███████████ ▀███████████ ███    ███ ▀▀█████▄           |\n");
-    printf("| ███   ███   ███   ███    ███          ███ ███    ███   ███▐██▄          |\n");
-    printf("| ███   ███   ███   ███    ███    ▄█    ███ ███    ███   ███ ▀███▄        |\n");
-    printf("|  ▀█   ███   █▀    ███    █▀   ▄████████▀  ████████▀    ███   ▀█▀        |\n");
-    printf("|                                                        ▀                |\n");
-    printf("===========================================================================\n");
+typedef struct {
+    char title[255];
+    char author[255];
+    int year;
+    int stock;
+    float price;
+} Book;
+
+typedef struct bookNode{
+    Book data;
+    struct bookNode *next;  
+} bookNode;
+
+bookNode *bookHead = NULL;
+//BACK END ------------------------------------------------------------------------------------------------------------------------------
+bookNode* createbookNode(Book bookData){
+    bookNode *newNode = (bookNode*)malloc(sizeof(bookNode));
+    if(newNode == NULL){
+        perror("memori tidak bisa dialokasikan untuk buku baru");
+        return NULL;
+    }    
+    newNode->data = bookData;
+    newNode->next = NULL;
+    return newNode;
+}
+
+void insertBook(Book bookData){
+    bookNode *newNode = createbookNode(bookData);
+    if(newNode == NULL) return;
     
-}
-
-void registerHeader(){
-    printf("==============================================================================\n");
-    printf("| ████████▄     ▄████████    ▄████████     ███        ▄████████    ▄████████ |\n");
-    printf("| ███   ▀███   ███    ███   ███    ███ ▀█████████▄   ███    ███   ███    ███ |\n");
-    printf("| ███    ███   ███    ███   ███    █▀     ▀███▀▀██   ███    ███   ███    ███ |\n");
-    printf("| ███    ███   ███    ███  ▄███▄▄▄         ███   ▀   ███    ███  ▄███▄▄▄▄██▀ |\n");
-    printf("| ███    ███ ▀███████████ ▀▀███▀▀▀         ███     ▀███████████ ▀▀███▀▀▀▀▀   |\n");
-    printf("| ███    ███   ███    ███   ███            ███       ███    ███ ▀███████████ |\n");
-    printf("| ███   ▄███   ███    ███   ███            ███       ███    ███   ███    ███ |\n");
-    printf("| ████████▀    ███    █▀    ███           ▄████▀     ███    █▀    ███    ███ |\n");
-    printf("|                                                                 ███    ███ |\n");
-    printf("==============================================================================\n");
-}
-
-//DATA STRUCTURE
-typedef struct{
-    char name[50];
-    char pass[50];
-} USER;
-//PAGES-------------------------------------------------------------------------------------------------------------------------------------
-void login(){
-    USER user;
-    char username[100], password[100];
-    int status = 0;
-
-    clearScreen();
-    enableCursor();
-    loginHeader();
-    printf("masukkan data:\n");
-    printf("Masukkan Username: ");
-    scanf("%s", username); getchar();
-    printf("\n");
-    printf("Masukkan Password: ");
-    scanf("%s", password); getchar();
-
-    FILE *f = fopen("userDatabase.txt", "r");
-    if (f == NULL) {
-        printf("Belum ada data terdaftar!\n");
-        return;
-    }
-
-    while (fscanf(f, "%[^#]#%[^#]#%[^\n]\n", user.name, user.pass) != EOF) {
-        if (strcmp(user.name, username) == 0 && strcmp(user.pass, password) == 0) {
-            status = 1;
-            break;
-        }
-    }
-    fclose(f);
-
-    if (status == 1) {
-           // mainMenuUser(user.name, user.password);
+    if(bookHead == NULL){
+        bookHead = newNode;
     } else {
-        printf("Login gagal! username atau password salah.\n");
-        printf("Tekan Enter untuk kembali ke menu utama...");
-        getch();
+        bookNode *current = bookHead;
+        while (current->next != NULL){
+            current = current->next;
+        }
+        current->next = newNode;
     }
-    disableCursor();
 }
 
-void registrasi(){
-    clearScreen();
-    enableCursor();
-    registerHeader();
-
-    USER newUser, tempUser;
-    FILE *file = fopen("userDatabase.txt", "a+");
-    if (!file) {
-        printf("Gagal membuka file user.txt!\n");
-        return;
-    }
-
-    int duplicate = 0;
-
-    printf("Registrasi: \n");
-    printf("Masukkan username: "); 
-    scanf("%s", newUser.name);
-    printf("\n");
-
-    while (fscanf(file, "%[^#]#%[^#][^\n]\n", tempUser.name, tempUser.pass) != EOF) {
-        if (strcmp(tempUser.name, newUser.name) == 0) {
-            duplicate = 1;
-            break;
-        }
-    }
-
-    if (duplicate) {
-        printf("username %s sudah digunakan! Registrasi gagal \n", newUser.name);
-        fclose(file);
-        printf("Tekan Enter untuk kembali ke menu utama...");
-        getchar(); getchar();
+void saveBookDatabase(const char *filename){
+    FILE *file = fopen(filename, "w");
+    if(file == NULL){
+        printf("Gagal membuka database untuk menyimpan buku");
+        printf("perubahan tidak bisa disimpan ke database");
+        enableCursor();
+        getchar();
         disableCursor();
         return;
     }
-
-    printf("Masukkan Password: ");
-    scanf("%s", newUser.pass); getchar();
-
-    fprintf(file, "%s#%s#%s\n", newUser.name,newUser.pass);
+    bookNode *current = bookHead;
+    //format database Judul#penulis#tahun#stok#harga
+    while(current != NULL){
+        fprintf(file, "%s#%s#%d#%d#%.2f\n", current->data.title, current->data.author, current->data.year, current->data.stock, current->data.price);
+        current = current->next;
+    }
     fclose(file);
-    printf("\n");
-    printf("Registrasi berhasil untuk User %s!\n", newUser.name);
-    printf("Tekan Enter untuk kembali ke menu utama...");
+}
+
+void loadBook(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if(file == NULL){
+        //kalo isinya kosong nanti gausah kasih error, berarti mulai dari data yang kosong
+        return;
+    }
+    Book tempBook;
+    while(fscanf(file, "%254[^#]#%254[^#]#%d#%d#%f\n", tempBook.title, tempBook.author, &tempBook.year, &tempBook.stock, &tempBook.price) == 5){
+        insertBook(tempBook);
+    }
+    fclose(file);
+}
+
+void freeBookMemory(){
+    bookNode *current = bookHead;
+    bookNode *nextNode;
+    if(current == NULL && bookHead == NULL){
+        return;
+    }
+    while(current != NULL){
+        nextNode = current->next;
+        free(current);
+        current = nextNode;
+    }
+    bookHead = NULL;
+    
+}
+
+void endProgram(){
+    clearScreen();
+    enableCursor();
+    printf("melepas memori...");
+    freeBookMemory();
+    printf("titlecard exit");
+}
+//FRONT END -----------------------------------------------------------------------------------------------------------------------------
+
+void addbook(){
+    clearScreen();
+    enableCursor();
+    Book newBook;
+
+    printf("===Registrasi Buku Baru=== \n\n");
+    printf("Judul Buku: ");
+    scanf(" %254[^\n]", newBook.title); getchar();
+    printf("\nPenulis Buku: ");
+    scanf(" %254[^\n]", newBook.author); getchar();
+    printf("\nTahun Terbit Buku: ");
+    scanf("%d", &newBook.year); getchar();
+    printf("\nJumlah Stok Buku: ");
+    scanf("%d", &newBook.stock); getchar();
+    printf("\nHarga Buku (Rp): ");
+    scanf("%f", &newBook.price); getchar();
+
+    insertBook(newBook);
+    saveBookDatabase("bookDatabase.txt");
+    printf("\n Buku berhasil dimasukan ke database");
+    printf("\n tekan enter untuk kembali ke menu utama...");
+    getchar();
+    disableCursor();
+  
+
+}
+
+void displayBook(){
+    clearScreen();
+    enableCursor();
+    printf("=== Daftar Semua Buku ===\n\n");
+    if(bookHead == NULL){
+        printf("Belum ada buku dalam database\n");
+    } else{
+        bookNode *current = bookHead;
+        int count = 1;
+        while(current != NULL){
+            printf("--- Buku #%d ---\n", count);
+            printf("Judul   = %s \n", current->data.title);
+            printf("Penulis = %s \n", current->data.author);
+            printf("Tahun   = %d \n", current->data.year);
+            printf("Stok    = %d \n", current->data.stock);
+            printf("Harga   = %.2f \n", current->data.price);
+            printf("-------------------------------------------\n\n");
+            current = current->next;
+            count++;
+        }
+    }
+    printf("Tekan Enter untuk kembali ke menu utama");
     getchar();
     disableCursor();
 }
 
-void landingPage() {
+int displayEditBook(){
+    clearScreen();
+    enableCursor();
+    printf("=== Daftar Semua Buku ===\n\n");
+    if(bookHead == NULL){
+        printf("Belum ada buku dalam database\n");
+        return 0;
+    } 
+    bookNode *current = bookHead;
+    int count = 1;
+    while(current != NULL){
+        printf("--- Buku #%d ---\n", count);
+        printf("Judul   = %s \n", current->data.title);
+        printf("Penulis = %s \n", current->data.author);
+        printf("Tahun   = %d \n", current->data.year);
+        printf("Stok    = %d \n", current->data.stock);
+        printf("Harga   = %.2f \n", current->data.price);
+        printf("-------------------------------------------\n\n");
+        current = current->next;
+        count++;
+    }   
+    return count - 1;
+}
+
+void updateBook(){
+    clearScreen();
+    enableCursor();
+    titlePage();
+    int bookCount = displayEditBook();
+    if(bookCount == 0){
+        printf("\nTidak ada buku yang diperbarui \n");
+        printf("\n Tekan enter untuk kembali...");
+        getchar();
+        disableCursor();
+        return;
+    }
+    int choiceNumber;
+    printf("\n masukkan nomor buku yang ingin diperbarui (1-%d) = ", bookCount);
+    scanf("%d", &choiceNumber);getchar();
+    if(choiceNumber < 1 || choiceNumber > bookCount){
+        printf("mohon masukan input yang valid");
+    }
+    bookNode *nodeUpdate = bookHead;
+    int i;
+    for(i = 1; i < choiceNumber; i++){
+        nodeUpdate = nodeUpdate->next;
+    }
+
+   if (nodeUpdate == NULL) { 
+        printf("Buku tidak ditemukan.\n");
+        disableCursor(); return;
+    }
+    clearScreen();
+    printf("=== Pembaharuan Buku: %s ===\n");
+    char changeConfirm;
+
+    printf("\nJudul saat ini = %s \n", nodeUpdate->data.title);
+    printf("Ganti Judul (y/t)? ");
+    do {
+        changeConfirm = getKeyboard(); 
+        changeConfirm = tolower(changeConfirm); 
+    } while (changeConfirm != 'y' && changeConfirm != 't');
+    printf("%c\n", changeConfirm);
+    if(changeConfirm == 'y'){
+        printf("masukkan judul baru = ");
+        scanf(" %254[^\n]", nodeUpdate->data.title);getchar();
+    }
+
+    printf("\nPenulis saat ini = %s \n", nodeUpdate->data.author);
+    printf("Ganti Penulis (y/t)? ");
+    do {
+        changeConfirm = getKeyboard(); 
+        changeConfirm = tolower(changeConfirm); 
+    } while (changeConfirm != 'y' && changeConfirm != 't');
+    printf("%c\n", changeConfirm);
+    if(changeConfirm == 'y'){
+        printf("masukkan Penulis baru = ");
+        scanf(" %254[^\n]", nodeUpdate->data.author);getchar();
+    }
+
+    printf("\nTahun Terbit saat ini = %d \n", nodeUpdate->data.year);
+    printf("Ganti Tahun Terbit (y/t)? ");
+    do {
+        changeConfirm = getKeyboard(); 
+        changeConfirm = tolower(changeConfirm); 
+    } while (changeConfirm != 'y' && changeConfirm != 't');
+    printf("%c\n", changeConfirm);
+    if(changeConfirm == 'y'){
+        printf("masukkan Tahun terbit baru = ");
+        scanf("%d", &nodeUpdate->data.year);getchar();
+    }
+
+    printf("\nStok buku saat ini = %d \n", nodeUpdate->data.stock);
+    printf("ganti Stok Buku (y/t)? ");
+    do {
+        changeConfirm = getKeyboard(); 
+        changeConfirm = tolower(changeConfirm); 
+    } while (changeConfirm != 'y' && changeConfirm != 't');
+    printf("%c\n", changeConfirm);
+    if(changeConfirm == 'y'){
+        printf("masukkan Stok baru = ");
+        scanf("%d", &nodeUpdate->data.stock);getchar();
+    }
+
+    printf("\nHarga buku saat ini = %.2f \n");
+    printf("ganti Harga Buku (y/t)? ", nodeUpdate->data.price);
+    do {
+        changeConfirm = getKeyboard(); 
+        changeConfirm = tolower(changeConfirm); 
+    } while (changeConfirm != 'y' && changeConfirm != 't');
+    printf("%c\n", changeConfirm);
+    if(changeConfirm == 'y'){
+        printf("masukkan Harga baru(Rp) = ");
+        scanf("%f", &nodeUpdate->data.price);getchar();
+    }
+
+    saveBookDatabase("bookDatabase.txt");
+    printf("\n Data buku berhasil di simpan");
+    printf("tekan Enter untuk kembali ke menu utama...");
+    getchar();
+    disableCursor();
+}
+
+void mainMenu() {
     int selection = 0;
     char key;
+    int menuItems = 4; 
 
     while (1) {
         clearScreen();
         titlePage();
-        
-        printf("Selamat Datang di aplikasi manajemen perbukuan, \033[0;33msilahkan memilih menggunakan W/S dan tekan 'ENTER' jika sudah\033[0m \n");
+        printf("Selamat Datang di Aplikasi Manajemen Perpustakaan Buku\n");
+        printf("Pilih menggunakan W/S dan tekan 'ENTER':\n\n");
 
-        printf("%smasuk%s\n", selection == 0 ? "\033[0;32m" : "", selection == 0 ? " <-\033[0m" : "");
-        printf("%sdaftar%s\n", selection == 1 ? "\033[0;32m" : "", selection == 1 ? " <-\033[0m" : "");
-        printf("%skeluar dari program%s\n", selection == 2 ? "\033[0;32m" : "", selection == 2 ? " <-\033[0m" : "");
+        printf("%sTambah Buku%s\n", selection == 0 ? "\033[0;32m" : "", selection == 0 ? " <-\033[0m" : "");
+        printf("%sTampilkan Semua Buku%s\n", selection == 1 ? "\033[0;32m" : "", selection == 1 ? " <-\033[0m" : "");
+        printf("%sUpdate Buku%s\n", selection == 2 ? "\033[0;32m" : "", selection == 2 ? " <-\033[0m" : "");
+        printf("%sHapus Buku%s\n", selection == 3 ? "\033[0;32m" : "", selection == 3 ? " <-\033[0m" : "");
+        printf("%sKeluar dari program%s\n", selection == 4 ? "\033[0;32m" : "", selection == 4 ? " <-\033[0m" : "");
 
-        key = getch();
+        disableCursor();
+        key = getKeyboard();
 
         if (key == 'W' || key == 'w') {
             selection--;
         } else if (key == 'S' || key == 's') {
             selection++;
-        } else if (key == '\n' || key == '\r') {
+        } else if (key == '\n') {
             break;
         }
 
-        if (selection < 0) selection = 0;
-        if (selection > 2) selection = 2;
+        if (selection < 0) selection = menuItems;
+        if (selection > menuItems) selection = 0;
     }
 
     switch (selection) {
-        case 0:
-            login();
-            landingPage();
+        case 0: 
+            addbook(); 
+            mainMenu(); 
             break;
-        case 1:
-            registrasi();
-            landingPage();
+        case 1: 
+            displayBook();
+            mainMenu(); 
             break;
-        case 2:
-            end();
-            return;
-            
+        case 2: 
+            updateBook(); 
+            mainMenu(); 
+            break;
+        case 3: 
+            //deleteBook();
+            puts("work in progress");
+            sleep(1);
+            mainMenu(); 
+            break;
+        case 4:
+            end(); 
+            break;
+        default:
+            printf("system error");
+            mainMenu();
     }
 }
 
@@ -273,8 +443,8 @@ int main(){
     #endif
     //linux - macos
     disableCursor();
-    landingPage();
-
+    loadBook("bookDatabase.txt");
+    mainMenu();
     return 0;
 }
 
