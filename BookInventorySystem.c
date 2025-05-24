@@ -81,11 +81,6 @@ void enableCursor() {
     printf("\033[?25h");
 }
 
-void end(){
-    printf("keluar dari program");
-    exit(0);
-}
-
 void titlePage(){
     printf("=============================================================================================\n");
     printf("| ▀█████████▄   ▄██████▄   ▄██████▄     ▄█   ▄█▄    ▄████████ ▄██   ▄   ███▄▄▄▄    ▄████████ |\n");
@@ -161,6 +156,47 @@ void saveBookDatabase(const char *filename){
     fclose(file);
 }
 
+int deleteBookfromDatabase(const char *titleToDelete){
+    bookNode *current = bookHead;
+    bookNode *previous = NULL;
+    //list kalau kosong
+    if(current == NULL){
+        printf("tidak ditemukan di memory");
+        return 0;
+    }
+    //kalau buku yang dihapus di depan list
+    if(strcmp(current->data.title, titleToDelete) == 0){
+        bookHead = current->next;
+        free(current);
+        return 1;
+    }
+    //searching bukunya
+    while(current != NULL && strcmp(current->data.title, titleToDelete) != 0){
+        previous = current;
+        current = current->next;  
+    }
+    //kalau ga ketemu di search
+    if(current = NULL){
+        printf("tidak ditemukan di list");
+        return 0;
+    }
+    previous->next = current->next;
+    free(current);
+    return 1;
+}
+
+int deleteBookByTitle(const char *filename, const char *titleToDelete){
+    int status = deleteBookfromDatabase(titleToDelete);
+    if(status == 1){
+        printf("buku '%s' telah dihapus dari database\n", titleToDelete);
+        saveBookDatabase(filename);
+        printf("database telah diperbarui \n");
+        return 1;
+    }else{
+        printf("Buku '%s' tidak ditemukan dalam database, tidak ada perubahan");
+        return 0;
+    }
+}
 void loadBook(const char *filename) {
     FILE *file = fopen(filename, "r");
     if(file == NULL){
@@ -192,9 +228,9 @@ void freeBookMemory(){
 void endProgram(){
     clearScreen();
     enableCursor();
-    printf("melepas memori...");
+    printf("melepas memori...\n");
     freeBookMemory();
-    printf("titlecard exit");
+    printf("titlecard exit\n");
 }
 //FRONT END -----------------------------------------------------------------------------------------------------------------------------
 
@@ -278,7 +314,6 @@ int displayEditBook(){
 void updateBook(){
     clearScreen();
     enableCursor();
-    titlePage();
     int bookCount = displayEditBook();
     if(bookCount == 0){
         printf("\nTidak ada buku yang diperbarui \n");
@@ -355,7 +390,7 @@ void updateBook(){
         scanf("%d", &nodeUpdate->data.stock);getchar();
     }
 
-    printf("\nHarga buku saat ini = %.2f \n");
+    printf("\nHarga buku saat ini = %.2f \n", nodeUpdate->data.price);
     printf("ganti Harga Buku (y/t)? ", nodeUpdate->data.price);
     do {
         changeConfirm = getKeyboard(); 
@@ -374,6 +409,25 @@ void updateBook(){
     disableCursor();
 }
 
+void deleteBookMenu(){
+    puts("=== Penghapusan buku === ");
+    int bookcount = displayEditBook();
+    if(bookcount == 0){
+        puts("tidak ada buku di database");
+        sleep(2);
+        return;
+    }
+    puts("masukan JUDUL buku yang akan dihapus = ");
+    char titleToRemove[255];
+    scanf("%[^\n]", titleToRemove);
+    getchar();
+    deleteBookByTitle("bookDatabase.txt", titleToRemove);
+    printf("\n Data buku berhasil di simpan");
+    printf("tekan Enter untuk kembali ke menu utama...");
+    getchar();
+    disableCursor();
+}
+
 void mainMenu() {
     int selection = 0;
     char key;
@@ -382,7 +436,7 @@ void mainMenu() {
     while (1) {
         clearScreen();
         titlePage();
-        printf("Selamat Datang di Aplikasi Manajemen Perpustakaan Buku\n");
+        printf("Selamat Datang di Aplikasi Manajemen Toko Buku\n");
         printf("Pilih menggunakan W/S dan tekan 'ENTER':\n\n");
 
         printf("%sTambah Buku%s\n", selection == 0 ? "\033[0;32m" : "", selection == 0 ? " <-\033[0m" : "");
@@ -420,13 +474,11 @@ void mainMenu() {
             mainMenu(); 
             break;
         case 3: 
-            //deleteBook();
-            puts("work in progress");
-            sleep(1);
+            deleteBookMenu();
             mainMenu(); 
             break;
         case 4:
-            end(); 
+            endProgram(); 
             break;
         default:
             printf("system error");
