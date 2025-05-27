@@ -176,7 +176,7 @@ int deleteBookfromDatabase(const char *titleToDelete){
         current = current->next;  
     }
     //kalau ga ketemu di search
-    if(current = NULL){
+    if(current == NULL){
         printf("tidak ditemukan di list");
         return 0;
     }
@@ -428,10 +428,42 @@ void deleteBookMenu(){
     disableCursor();
 }
 
+void searchBookByTitle() {
+    clearScreen();
+    enableCursor();
+    char searchTitle[255];
+    printf("=== Pencarian Buku Berdasarkan Judul ===\n\n");
+    printf("Masukkan judul buku yang ingin dicari: ");
+    scanf(" %254[^\n]", searchTitle); getchar();
+    bookNode *current = bookHead;
+    int found = 0;
+    while (current != NULL) {
+        if (strcasecmp(current->data.title, searchTitle) == 0) {
+            if (!found) {
+                printf("\nBuku ditemukan!\n");
+            }
+            printf("Judul   = %s \n", current->data.title);
+            printf("Penulis = %s \n", current->data.author);
+            printf("Tahun   = %d \n", current->data.year);
+            printf("Stok    = %d \n", current->data.stock);
+            printf("Harga   = %.2f \n", current->data.price);
+            printf("-------------------------------------------\n");
+            found = 1;
+        }
+        current = current->next;
+    }
+    if (!found) {
+        printf("\nBuku dengan judul '%s' tidak ditemukan.\n", searchTitle);
+    }
+    printf("\nTekan Enter untuk kembali ke menu utama...");
+    getchar();
+    disableCursor();
+}
+
 void mainMenu() {
     int selection = 0;
     char key;
-    int menuItems = 4; 
+    int menuItems = 6; 
 
     while (1) {
         clearScreen();
@@ -443,7 +475,8 @@ void mainMenu() {
         printf("%sTampilkan Semua Buku%s\n", selection == 1 ? "\033[0;32m" : "", selection == 1 ? " <-\033[0m" : "");
         printf("%sUpdate Buku%s\n", selection == 2 ? "\033[0;32m" : "", selection == 2 ? " <-\033[0m" : "");
         printf("%sHapus Buku%s\n", selection == 3 ? "\033[0;32m" : "", selection == 3 ? " <-\033[0m" : "");
-        printf("%sKeluar dari program%s\n", selection == 4 ? "\033[0;32m" : "", selection == 4 ? " <-\033[0m" : "");
+        printf("%sCari Buku%s\n", selection == 4 ? "\033[0;32m" : "", selection == 4 ? " <-\033[0m" : "");
+        printf("%sKeluar dari program%s\n", selection == 5 ? "\033[0;32m" : "", selection == 5 ? " <-\033[0m" : "");
 
         disableCursor();
         key = getKeyboard();
@@ -456,8 +489,8 @@ void mainMenu() {
             break;
         }
 
-        if (selection < 0) selection = menuItems;
-        if (selection > menuItems) selection = 0;
+        if (selection < 0) selection = menuItems - 1;
+        if (selection >= menuItems) selection = 0;
     }
 
     switch (selection) {
@@ -478,6 +511,10 @@ void mainMenu() {
             mainMenu(); 
             break;
         case 4:
+            searchBookByTitle(); 
+            mainMenu();
+            break;
+        case 5:
             endProgram(); 
             break;
         default:
