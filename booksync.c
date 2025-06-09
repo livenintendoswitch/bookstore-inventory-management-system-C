@@ -227,10 +227,10 @@ void freeBookMemory(){
 
 void endProgram(){
     clearScreen();
+    titlePage();
     enableCursor();
     printf("melepas memori...\n");
     freeBookMemory();
-    printf("titlecard exit\n");
 }
 //FRONT END -----------------------------------------------------------------------------------------------------------------------------
 
