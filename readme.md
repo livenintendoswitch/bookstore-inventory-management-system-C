@@ -3,7 +3,11 @@
 **BOOKSYNC** adalah aplikasi berbasis teks (console-based) yang dirancang untuk membantu pengelolaan data buku dalam sebuah toko buku. Aplikasi ini memungkinkan pengguna untuk mencatat, mencari, mengubah, menghapus, dan mengurutkan data buku dengan mudah dan interaktif melalui terminal.
 
 ---
+## VIDEO DEMO
+[![Video Demo](https://img.youtube.com/vi/dT7aCuTHg5s/maxresdefault.jpg)](https://youtu.be/dT7aCuTHg5s)
 
+
+---
 ## ✨ Fitur Aplikasi
 
 1. **Tambah Buku**
