@@ -533,7 +533,7 @@ void sortBookByYear() {
 void mainMenu() {
     int selection = 0;
     char key;
-    int menuItems = 6; 
+    int menuItems = 7; 
 
     while (1) {
         clearScreen();
