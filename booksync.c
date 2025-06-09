@@ -227,10 +227,10 @@ void freeBookMemory(){
 
 void endProgram(){
     clearScreen();
+    titlePage();
     enableCursor();
     printf("melepas memori...\n");
     freeBookMemory();
-    printf("titlecard exit\n");
 }
 //FRONT END -----------------------------------------------------------------------------------------------------------------------------
 
@@ -460,10 +460,80 @@ void searchBookByTitle() {
     disableCursor();
 }
 
+// sort based on Price and year of released
+void sortBookByYear() {
+    clearScreen();
+    enableCursor();
+    printf("=== Daftar Buku Berdasarkan Tahun ===\n\n");
+
+    if (bookHead == NULL) {
+        printf("Belum ada buku dalam database\n");
+    } else {
+        Book books[100];
+        int count = 0;
+        bookNode *current = bookHead;
+        while (current != NULL && count < 100) {
+            books[count++] = current->data;
+            current = current->next;
+        }
+
+        int ascending;
+        printf("Urutkan berdasarkan tahun terbit:\n");
+        printf("1. Ascending (Terlama ke Terbaru)\n");
+        printf("0. Descending (Terbaru ke Terlama)\n");
+        printf("Pilihan: ");
+        scanf("%d", &ascending);
+        getchar();
+
+        // Sorting
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = i + 1; j < count; j++) {
+                int swap = ascending ? (books[i].year > books[j].year)
+                                     : (books[i].year < books[j].year);
+                if (swap) {
+                    Book temp = books[i];
+                    books[i] = books[j];
+                    books[j] = temp;
+                }
+            }
+        }
+
+        // Pagination (5 buku per halaman)
+        int perPage = 5;
+        for (int i = 0; i < count; i++) {
+            printf("--- Buku #%d ---\n", i + 1);
+            printf("Judul   = %s \n", books[i].title);
+            printf("Penulis = %s \n", books[i].author);
+            printf("Tahun   = %d \n", books[i].year);
+            printf("Stok    = %d \n", books[i].stock);
+            printf("Harga   = %.2f \n", books[i].price);
+            printf("-------------------------------------------\n\n");
+
+            // Jika belum sampai akhir, tampilkan opsi
+            if ((i + 1) % perPage == 0 && (i + 1) < count) {
+                printf("Tekan Enter untuk halaman berikutnya atau 'x' untuk keluar: ");
+                char input = getchar();
+                if (input == 'x' || input == 'X') {
+                    break;
+                }
+                clearScreen();
+                printf("=== Daftar Buku Berdasarkan Tahun (lanjutan) ===\n\n");
+            }
+        }
+    }
+
+    printf("Tekan Enter untuk kembali ke menu utama");
+    getchar();
+    disableCursor();
+}
+
+
+// 
+
 void mainMenu() {
     int selection = 0;
     char key;
-    int menuItems = 6; 
+    int menuItems = 7; 
 
     while (1) {
         clearScreen();
@@ -476,7 +546,8 @@ void mainMenu() {
         printf("%sUpdate Buku%s\n", selection == 2 ? "\033[0;32m" : "", selection == 2 ? " <-\033[0m" : "");
         printf("%sHapus Buku%s\n", selection == 3 ? "\033[0;32m" : "", selection == 3 ? " <-\033[0m" : "");
         printf("%sCari Buku%s\n", selection == 4 ? "\033[0;32m" : "", selection == 4 ? " <-\033[0m" : "");
-        printf("%sKeluar dari program%s\n", selection == 5 ? "\033[0;32m" : "", selection == 5 ? " <-\033[0m" : "");
+        printf("%sUrutkan Buku berdasarkan tahun%s\n", selection == 5 ? "\033[0;32m" : "", selection == 5 ? " <-\033[0m" : "");
+        printf("%sKeluar dari program%s\n", selection == 6 ? "\033[0;32m" : "", selection == 6 ? " <-\033[0m" : "");
 
         disableCursor();
         key = getKeyboard();
@@ -515,6 +586,10 @@ void mainMenu() {
             mainMenu();
             break;
         case 5:
+            sortBookByYear(); 
+            mainMenu();
+            break;
+        case 6:
             endProgram(); 
             break;
         default:
@@ -536,4 +611,3 @@ int main(){
     mainMenu();
     return 0;
 }
-
